@@ -1,11 +1,30 @@
 import os
 import json
-from openai import OpenAI
 
-# Folders
+# --- Folders ---
 input_folder = r"C:\PyProjects\My_project\MockupCVs_JSON"   # JSONs with raw_text
 output_folder = r"C:\PyProjects\My_project\MockupCVs_Final"  # Structured JSON output
 os.makedirs(output_folder, exist_ok=True)
+
+# --- Template for structured JSON ---
+def create_empty_structure(raw_text=""):
+    return {
+        "personal_info": {
+            "name": "",
+            "email": "",
+            "phone": "",
+            "location": ""
+        },
+        "summary": "",
+        "skills": [],
+        "experience": [
+            {"title": "", "company": "", "start_date": "", "end_date": "", "description": ""}
+        ],
+        "education": [
+            {"degree": "", "field": "", "institution": "", "year": ""}
+        ],
+        "raw_text": raw_text  # keep original text for reference
+    }
 
 # --- Process each JSON file ---
 for file in os.listdir(input_folder):
@@ -17,49 +36,14 @@ for file in os.listdir(input_folder):
             data = json.load(f)
         raw_text = data.get("raw_text", "")
 
-        # --- Prompt for AI ---
-        prompt = f"""
-You are a professional resume parser. Extract all relevant information from the resume text below
-and return it in valid JSON format exactly like this structure:
+        # Create structured JSON using template
+        structured_json = create_empty_structure(raw_text)
 
-{{
-  "personal_info": {{
-    "name": "",
-    "email": "",
-    "phone": "",
-    "location": ""
-  }},
-  "summary": "",
-  "skills": [],
-  "experience": [
-    {{"title": "", "company": "", "start_date": "", "end_date": "", "description": ""}}
-  ],
-  "education": [
-    {{"degree": "", "field": "", "institution": "", "year": ""}}
-  ]
-}}
-
-Resume text:
-{raw_text}
-
-Extract all information you can. Keep the JSON valid.
-"""
-
-        # --- Call OpenAI API ---
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0
-        )
-
-        # --- Get structured JSON ---
-        structured_json = response.choices[0].message.content
-
-        # --- Save output dynamically ---
+        # Save output dynamically
         base_name = os.path.splitext(file)[0]
         output_path = os.path.join(output_folder, f"{base_name}_structured.json")
 
         with open(output_path, "w", encoding="utf-8") as f:
-            f.write(structured_json)
+            json.dump(structured_json, f, ensure_ascii=False, indent=2)
 
         print(f"Processed: {file} → {base_name}_structured.json")

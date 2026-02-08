@@ -13,6 +13,3 @@ Aura One is a modular enterprise platform designed to unify core business operat
 
 ## Status
 Early development (v1)
-
-## Status
-Development environment initialized.
